@@ -1,93 +1,190 @@
-# Video Keyframe Extraction Skill
+# Claude Code Skills
 
-動画をClaude Codeに安く渡すためのスキルです。
+スマホアプリのテスト効率化のためのスキル集です。
+Claude Codeに自然言語で話しかけるだけで、各種スキルが自動で実行されます。
 
-## 概要
+---
 
-通常、動画をフレーム分割して全部渡すと、5秒の動画で約450円かかります。
-このスキルは以下の最適化で、コストを**約1/19**に削減します：
+## スキル一覧
 
-- **差分が大きいキーフレームのみを抽出**: 類似度閾値で重複フレームを除外
-- **画質を下げる**: JPEG品質を30に設定
-- **サイズを縮小**: 0.3倍にリサイズ
+### 動画/画像スキル
 
-### 削減例
+| スキル | 説明 | 使用例 |
+|--------|------|--------|
+| **キーフレーム抽出** | 動画からキーフレームを抽出し、コストを約1/19に削減 | 「テスト動画を確認して」 |
+| **スクリーンショット比較** | 2つの画像の差分をハイライト表示 | 「スクショを比較して」 |
+| **エラー画面検出** | エラー・警告・異常画面を自動検出 | 「エラーを探して」 |
+
+### コードスキル（Flutter）
+
+| スキル | 説明 | 使用例 |
+|--------|------|--------|
+| **Dart解析** | 関数・クラス構造を解析 | 「このファイルの構造を教えて」 |
+| **テスト生成** | Dartコードからテストを自動生成 | 「テストを書いて」 |
+| **テスト実行** | flutter testを実行しレポート生成 | 「テストを実行して」 |
+
+---
+
+## クイックスタート
+
+### 1. クローン
+
+```bash
+git clone https://github.com/your-repo/claude_skills.git
+cd claude_skills
+```
+
+### 2. 依存パッケージをインストール
+
+```bash
+pip install opencv-python numpy Pillow
+```
+
+### 3. 他のプロジェクトで使う場合
+
+```bash
+./setup.sh /path/to/your/project
+```
+
+これにより、対象プロジェクトにシンボリックリンクが作成され、Claude Codeがスキルを認識します。
+
+---
+
+## 自然言語で使う
+
+Claude Codeを起動して、普通に話しかけるだけ:
+
+```
+あなた: テスト動画を確認して
+        recordings/test.mp4
+
+Claude: 動画を解析します...
+        [キーフレーム抽出・異常検出を実行]
+        [結果を報告]
+```
+
+```
+あなた: メールバリデーション関数を実装して
+
+Claude: 実装します...
+        [コード作成 → テスト生成 → テスト実行]
+        [完了報告]
+```
+
+詳しい例は [docs/usage_natural_language.md](docs/usage_natural_language.md) を参照。
+
+---
+
+## スキル詳細
+
+### キーフレーム抽出
+
+動画をClaude Codeに安く渡すためのスキル。
+
 | 項目 | 変更前 | 変更後 |
 |------|--------|--------|
 | フレーム数 | 71枚 | 52枚 |
 | サイズ | 443×960 | 266×576 px |
-| 容量 | 2.40MB | 0.54MB |
 | コスト | 約450円 | **約24円** |
 
-## インストール
-
 ```bash
-pip install -r requirements.txt
+python skills/video/extract_keyframes.py video.mp4 -o keyframes -t 0.85 -q 30 -s 0.3
 ```
 
-## 使い方
+詳細: [docs/video/usage_extract_keyframes.md](docs/video/usage_extract_keyframes.md)
 
-### 基本的な使い方
+---
 
-```bash
-python extract_keyframes.py video.mp4
-```
+### スクリーンショット比較
 
-### オプション付き
+2つの画像の差分をマゼンタでハイライト表示。
 
 ```bash
-python extract_keyframes.py video.mp4 -o keyframes -t 0.85 -q 30 -s 0.3
+python skills/video/compare_screenshots.py before.png after.png -o diff_output
 ```
 
-### オプション
+詳細: [docs/video/usage_compare_screenshots.md](docs/video/usage_compare_screenshots.md)
 
-| オプション | 説明 | デフォルト |
-|------------|------|------------|
-| `-o, --output` | 出力ディレクトリ | keyframes |
-| `-t, --threshold` | 類似度閾値 (0.0-1.0) | 0.85 |
-| `-q, --quality` | JPEG品質 (1-100) | 30 |
-| `-s, --scale` | リサイズ倍率 (0.0-1.0) | 0.3 |
-| `-m, --max-frames` | 最大抽出フレーム数 | 100 |
+---
 
-### 設定の目安
+### エラー画面検出
 
-- **類似度閾値 (-t)**: 0.85-0.95（低いほど多くのフレームを抽出）
-- **JPEG品質 (-q)**: 20-50（低いほど圧縮率が高い）
-- **スケール (-s)**: 0.2-0.5（低いほど小さいサイズ）
+動画や画像からエラー・警告・異常画面を自動検出。
 
-## 活用例
-
-### 画面遷移のバグ修正
-
-画面録画した動画からキーフレームを抽出し、Claude Codeに渡すことで：
-- 画面遷移のバグを特定
-- UIの問題点を分析
-- 修正案を提案
+検出対象:
+- 赤いエラーメッセージ
+- 黄色い警告
+- 空白/真っ白な画面
+- ダイアログ/ポップアップ
+- ローディング画面
 
 ```bash
-# 画面録画を処理
-python extract_keyframes.py screen_recording.mp4 -o frames -t 0.80
-
-# 抽出されたフレームをClaude Codeに渡す
-# Claude Code内でframesディレクトリの画像を読み込む
+python skills/video/detect_anomaly_screens.py video.mp4 -o anomalies
 ```
 
-## 仕組み
+詳細: [docs/video/usage_detect_anomaly_screens.md](docs/video/usage_detect_anomaly_screens.md)
 
-1. **フレーム抽出**: OpenCVで動画から全フレームを取得
-2. **類似度計算**: ヒストグラム比較で連続フレーム間の類似度を計算
-3. **キーフレーム選択**: 類似度が閾値より低いフレームを抽出
-4. **圧縮**: リサイズ + JPEG圧縮でファイルサイズを削減
+---
 
-## トークン計算
+### Flutter テスト自動化
 
-Claude Visionは約750ピクセルあたり1トークンを使用します。
+「〇〇を実装して」と指示するだけで:
 
-例: 266×576 px のフレーム
-- ピクセル数: 153,216 px
-- トークン数: 約199トークン/枚
-- 52枚の場合: 約10,400トークン
-- Claude Opus料金: $15/1M → 約$0.16 (約24円)
+1. 機能を実装
+2. テストを自動生成
+3. テストを実行
+4. 失敗したら修正して再テスト（最大3回）
+5. 完了報告
+
+```
+実装 → テスト生成 → テスト実行 → 失敗? → 修正 → 再テスト → 完了
+```
+
+詳細: [docs/code/usage_flutter_test.md](docs/code/usage_flutter_test.md)
+
+---
+
+## ディレクトリ構成
+
+```
+claude_skills/
+├── README.md              # このファイル
+├── CLAUDE.md              # Claude Code用ルール定義
+├── setup.sh               # 他プロジェクトへのリンクスクリプト
+├── skills/
+│   ├── video/
+│   │   ├── extract_keyframes.py
+│   │   ├── compare_screenshots.py
+│   │   └── detect_anomaly_screens.py
+│   └── code/
+│       ├── analyze_dart.py
+│       ├── generate_tests.py
+│       └── run_tests.py
+├── docs/
+│   ├── usage_natural_language.md   # 自然言語使用例
+│   ├── video/
+│   │   ├── usage_extract_keyframes.md
+│   │   ├── usage_compare_screenshots.md
+│   │   └── usage_detect_anomaly_screens.md
+│   └── code/
+│       └── usage_flutter_test.md
+└── .claude/
+    └── commands/          # スラッシュコマンド定義
+```
+
+---
+
+## ドキュメント
+
+| ドキュメント | 内容 |
+|--------------|------|
+| [自然言語使用例](docs/usage_natural_language.md) | Claudeへの指示例 |
+| [キーフレーム抽出](docs/video/usage_extract_keyframes.md) | 動画処理の詳細 |
+| [スクショ比較](docs/video/usage_compare_screenshots.md) | 差分検出の詳細 |
+| [エラー検出](docs/video/usage_detect_anomaly_screens.md) | 異常検出の詳細 |
+| [Flutterテスト](docs/code/usage_flutter_test.md) | テスト自動化の詳細 |
+
+---
 
 ## ライセンス
 
