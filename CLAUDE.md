@@ -2,6 +2,14 @@
 
 このリポジトリには、スマホアプリのテスト効率化のためのスキルが含まれています。
 
+## セットアップ
+
+他のプロジェクトでこのスキルを使う場合:
+
+```bash
+/path/to/claude_skills/setup.sh /path/to/your/project
+```
+
 ## 利用可能なスキル
 
 ### 1. 動画/テスト動画の確認を依頼されたら
@@ -13,10 +21,10 @@
 pip install -q opencv-python numpy Pillow
 
 # キーフレームを抽出（コスト削減）
-python extract_keyframes.py <動画パス> -o keyframes -t 0.85 -q 30 -s 0.3
+python .claude_skills/video/extract_keyframes.py <動画パス> -o keyframes -t 0.85 -q 30 -s 0.3
 
 # 異常画面を検出
-python detect_anomaly_screens.py <動画パス> -o anomalies
+python .claude_skills/video/detect_anomaly_screens.py <動画パス> -o anomalies
 ```
 
 その後、`keyframes/` と `anomalies/` の画像を読み込んで内容を確認する。
@@ -26,7 +34,7 @@ python detect_anomaly_screens.py <動画パス> -o anomalies
 ユーザーが「スクショを比較して」「画面の差分を見て」「変更前後を確認して」などと言ったら:
 
 ```bash
-python compare_screenshots.py <画像1> <画像2> -o diff_output
+python .claude_skills/video/compare_screenshots.py <画像1> <画像2> -o diff_output
 ```
 
 その後、`diff_output/diff_highlight.jpg` を読み込んで差分を説明する。
@@ -36,7 +44,7 @@ python compare_screenshots.py <画像1> <画像2> -o diff_output
 ユーザーが「エラーを探して」「異常がないか確認して」「問題のある画面を見つけて」などと言ったら:
 
 ```bash
-python detect_anomaly_screens.py <動画または画像> -o anomalies
+python .claude_skills/video/detect_anomaly_screens.py <動画または画像> -o anomalies
 ```
 
 その後、`anomalies/` 内の画像を確認し、検出された問題を報告する。
@@ -93,3 +101,11 @@ python detect_anomaly_screens.py <動画または画像> -o anomalies
 ### compare_screenshots.py
 - `-s 0.5`: トークン節約
 - `-s 1.0`: 詳細確認
+
+## スキル一覧
+
+| カテゴリ | スキル | 説明 |
+|----------|--------|------|
+| video | extract_keyframes.py | 動画からキーフレーム抽出 |
+| video | compare_screenshots.py | スクショ差分比較 |
+| video | detect_anomaly_screens.py | エラー/異常画面検出 |

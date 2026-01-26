@@ -15,8 +15,8 @@ description: テスト動画を分析してエラーや異常を検出
 
 ```bash
 pip install -q opencv-python numpy Pillow
-python extract_keyframes.py "$ARGUMENTS" -o keyframes -t 0.85 -q 30 -s 0.3
-python detect_anomaly_screens.py "$ARGUMENTS" -o anomalies -i 10
+python .claude_skills/video/extract_keyframes.py "$ARGUMENTS" -o keyframes -t 0.85 -q 30 -s 0.3
+python .claude_skills/video/detect_anomaly_screens.py "$ARGUMENTS" -o anomalies -i 10
 ```
 
 実行後、以下を確認:
@@ -25,3 +25,4 @@ python detect_anomaly_screens.py "$ARGUMENTS" -o anomalies -i 10
 - `keyframes/` 内の主要フレーム
 
 画像を読み込んで、検出された問題と画面遷移の流れを報告してください。
+コスト情報も報告に含めてください。
