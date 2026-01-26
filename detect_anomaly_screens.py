@@ -276,6 +276,22 @@ def process_video(
 
     cap.release()
 
+    # コスト計算
+    total_size = 0
+    total_pixels = 0
+    for af in anomaly_frames:
+        filepath = Path(af["file"])
+        if filepath.exists():
+            total_size += filepath.stat().st_size
+            # 画像サイズを取得
+            img = cv2.imread(str(filepath))
+            if img is not None:
+                total_pixels += img.shape[0] * img.shape[1]
+
+    tokens = int(total_pixels / 750)  # Claude Vision: 約750ピクセル/トークン
+    cost_usd = (tokens / 1_000_000) * 15  # Claude Opus: $15/1M tokens
+    cost_jpy = cost_usd * 150
+
     return {
         "video_path": video_path,
         "total_frames": total_frames,
@@ -283,6 +299,11 @@ def process_video(
         "anomaly_count": len(anomaly_frames),
         "anomaly_frames": anomaly_frames,
         "output_dir": str(output_path),
+        "total_size_bytes": total_size,
+        "total_size_mb": round(total_size / (1024 * 1024), 2),
+        "estimated_tokens": tokens,
+        "estimated_cost_usd": round(cost_usd, 4),
+        "estimated_cost_jpy": round(cost_jpy, 2),
     }
 
 
@@ -327,11 +348,31 @@ def process_images(
                 "details": {k: v for k, v in results.items() if k != "summary"}
             })
 
+    # コスト計算
+    total_size = 0
+    total_pixels = 0
+    for ai in anomaly_images:
+        filepath = Path(ai["output_file"])
+        if filepath.exists():
+            total_size += filepath.stat().st_size
+            img = cv2.imread(str(filepath))
+            if img is not None:
+                total_pixels += img.shape[0] * img.shape[1]
+
+    tokens = int(total_pixels / 750)
+    cost_usd = (tokens / 1_000_000) * 15
+    cost_jpy = cost_usd * 150
+
     return {
         "total_images": len(image_paths),
         "anomaly_count": len(anomaly_images),
         "anomaly_images": anomaly_images,
         "output_dir": str(output_path),
+        "total_size_bytes": total_size,
+        "total_size_kb": round(total_size / 1024, 1),
+        "estimated_tokens": tokens,
+        "estimated_cost_usd": round(cost_usd, 4),
+        "estimated_cost_jpy": round(cost_jpy, 2),
     }
 
 
@@ -369,6 +410,14 @@ def print_video_result(result: Dict):
 
     print(f"\n出力ディレクトリ: {result['output_dir']}")
 
+    print(f"\n" + "-" * 50)
+    print(f"コスト見積もり (検出画像をClaudeに渡した場合)")
+    print(f"-" * 50)
+    print(f"  画像数: {result['anomaly_count']}枚")
+    print(f"  合計サイズ: {result['total_size_mb']}MB")
+    print(f"  トークン数: 約{result['estimated_tokens']:,}トークン")
+    print(f"  料金: ${result['estimated_cost_usd']:.4f} (約{result['estimated_cost_jpy']:.0f}円)")
+
 
 def print_image_result(result: Dict):
     """画像分析結果を表示"""
@@ -389,6 +438,14 @@ def print_image_result(result: Dict):
             print(f"     → {ai['output_file']}")
 
     print(f"\n出力ディレクトリ: {result['output_dir']}")
+
+    print(f"\n" + "-" * 50)
+    print(f"コスト見積もり (検出画像をClaudeに渡した場合)")
+    print(f"-" * 50)
+    print(f"  画像数: {result['anomaly_count']}枚")
+    print(f"  合計サイズ: {result['total_size_kb']}KB")
+    print(f"  トークン数: 約{result['estimated_tokens']:,}トークン")
+    print(f"  料金: ${result['estimated_cost_usd']:.4f} (約{result['estimated_cost_jpy']:.0f}円)")
 
 
 def main():

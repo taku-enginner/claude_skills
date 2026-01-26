@@ -169,6 +169,8 @@ def compare_screenshots(
 
     # 画像を保存
     saved_files = {}
+    total_size = 0
+    output_dimensions = {}
     for name, img in visualizations.items():
         # リサイズ
         if scale != 1.0:
@@ -178,6 +180,16 @@ def compare_screenshots(
         output_file = output_path / f"diff_{name}.jpg"
         cv2.imwrite(str(output_file), img, [cv2.IMWRITE_JPEG_QUALITY, jpeg_quality])
         saved_files[name] = str(output_file)
+        file_size = output_file.stat().st_size
+        total_size += file_size
+        output_dimensions[name] = (img.shape[1], img.shape[0])
+
+    # コスト計算（Claudeに渡す推奨ファイル: highlight のみ）
+    highlight_dim = output_dimensions.get("highlight", (img1.shape[1], img1.shape[0]))
+    pixels = highlight_dim[0] * highlight_dim[1]
+    tokens = int(pixels / 750)  # Claude Vision: 約750ピクセル/トークン
+    cost_usd = (tokens / 1_000_000) * 15  # Claude Opus: $15/1M tokens
+    cost_jpy = cost_usd * 150
 
     # 結果をまとめる
     result = {
@@ -188,6 +200,12 @@ def compare_screenshots(
         "diff_region_count": len(diff_regions),
         "diff_regions": diff_regions,
         "output_files": saved_files,
+        "output_dimensions": highlight_dim,
+        "total_size_bytes": total_size,
+        "total_size_kb": round(total_size / 1024, 1),
+        "estimated_tokens": tokens,
+        "estimated_cost_usd": round(cost_usd, 4),
+        "estimated_cost_jpy": round(cost_jpy, 2),
     }
 
     return result
@@ -226,6 +244,14 @@ def print_result(result: dict):
 
     print(f"\nClaudeに渡す推奨ファイル:")
     print(f"  {result['output_files']['highlight']}")
+
+    print(f"\n" + "-" * 50)
+    print(f"コスト見積もり (highlight画像をClaudeに渡した場合)")
+    print(f"-" * 50)
+    w, h = result["output_dimensions"]
+    print(f"  画像サイズ: {w}x{h} ({result['total_size_kb']}KB)")
+    print(f"  トークン数: 約{result['estimated_tokens']:,}トークン")
+    print(f"  料金: ${result['estimated_cost_usd']:.4f} (約{result['estimated_cost_jpy']:.0f}円)")
 
 
 def main():
