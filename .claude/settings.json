@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter:*)",
+      "Bash(pod:*)",
+      "Bash(xcrun:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(curl:*)",
+      "Bash(git:*)",
+      "Bash(sed:*)",
+      "Bash(./.claude/scripts/*)",
+      "Bash(/Users/taku/myapp/ai_kakeibo_flutter/.claude/scripts/*)",
+      "Bash(bash /Users/taku/myapp/ai_kakeibo_flutter/.claude/scripts/*)",
+      "Bash(sh /Users/taku/myapp/ai_kakeibo_flutter/.claude/scripts/*)"
+    ]
+  }
+}
